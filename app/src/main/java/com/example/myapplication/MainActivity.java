@@ -5,7 +5,11 @@ import android.util.Base64;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
+import android.widget.Spinner;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -16,6 +20,8 @@ import com.bumptech.glide.Glide;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
+
+import java.util.HashMap;
 
 import okhttp3.ResponseBody;
 import retrofit2.Call;
@@ -29,7 +35,18 @@ import retrofit2.http.Query;
 public class MainActivity extends AppCompatActivity {
 
     RecyclerView recyclerView;
+    Spinner categorySpinner;
+    ProgressBar progressBar;
+    TextView fallbackText;
     JSONArray listingsArray = new JSONArray();
+
+    HashMap<String, Integer> categoryIcons = new HashMap<>();
+    String[] categories = {
+            "ALL","AMAZING_VIEWS","OMG","TREEHOUSES","BEACH","FARMS",
+            "TINY_HOMES","LAKE","CONTAINERS","CAMPERS","CASTLE","ARTIC",
+            "BOAT","BED_AND_BREAKFASTS","ROOMS","EARTH_HOMES","TOWER",
+            "CAVES","LUXES","CHEFS_KITCHEN","SKIING"
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,46 +54,140 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         recyclerView = findViewById(R.id.recyclerView);
-        recyclerView.setLayoutManager(new GridLayoutManager(this, 1));
+        categorySpinner = findViewById(R.id.categorySpinner);
+        progressBar = findViewById(R.id.progressBar);
+        fallbackText = findViewById(R.id.fallbackText);
 
-        fetchData();
+        // Adaptive span count for tablets vs phones
+        int spanCount = getResources().getConfiguration().screenWidthDp > 600 ? 2 : 1;
+        recyclerView.setLayoutManager(new GridLayoutManager(this, spanCount));
+
+        // Map categories to drawable icons
+        categoryIcons.put("ALL", R.drawable.all);
+        categoryIcons.put("AMAZING_VIEWS", R.drawable.eye);
+        categoryIcons.put("OMG", R.drawable.exclamation);
+        categoryIcons.put("TREEHOUSES", R.drawable.tree);
+        categoryIcons.put("BEACH", R.drawable.beach);
+        categoryIcons.put("FARMS", R.drawable.farm);
+        categoryIcons.put("TINY_HOMES", R.drawable.tiny_home);
+        categoryIcons.put("LAKE", R.drawable.lake);
+        categoryIcons.put("CONTAINERS", R.drawable.container);
+        categoryIcons.put("CAMPERS", R.drawable.campers);
+        categoryIcons.put("CASTLE", R.drawable.castle);
+        categoryIcons.put("ARTIC", R.drawable.arctic);
+        categoryIcons.put("BOAT", R.drawable.boat);
+        categoryIcons.put("BED_AND_BREAKFASTS", R.drawable.bednbreakfast);
+        categoryIcons.put("ROOMS", R.drawable.rooms);
+        categoryIcons.put("EARTH_HOMES", R.drawable.earth_homes);
+        categoryIcons.put("TOWER", R.drawable.tower);
+        categoryIcons.put("CAVES", R.drawable.caves);
+        categoryIcons.put("LUXES", R.drawable.luxes);
+        categoryIcons.put("CHEFS_KITCHEN", R.drawable.chefs_kitchen);
+        categoryIcons.put("SKIING", R.drawable.skiing);
+
+        setupCategoryDropdown();
+        fetchData("ALL");
     }
 
-    private void fetchData() {
+    private void setupCategoryDropdown() {
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, categories) {
+            @Override
+            public View getView(int position, View convertView, ViewGroup parent) {
+                return createDropdownItemView(position, convertView, parent, true);
+            }
+
+            @Override
+            public View getDropDownView(int position, View convertView, ViewGroup parent) {
+                return createDropdownItemView(position, convertView, parent, false);
+            }
+
+            private View createDropdownItemView(int position, View convertView, ViewGroup parent, boolean isSelectedView) {
+                if (convertView == null) {
+                    convertView = LayoutInflater.from(getContext()).inflate(R.layout.spinner_item_with_icon, parent, false);
+                }
+
+                ImageView icon = convertView.findViewById(R.id.iconImage);
+                TextView text = convertView.findViewById(R.id.textLabel);
+
+                String category = getItem(position);
+                text.setText(category.replace("_", " "));
+                Integer iconRes = categoryIcons.get(category);
+                if (iconRes != null) icon.setImageResource(iconRes);
+
+                // Highlight selected
+                if (isSelectedView) {
+                    convertView.setBackgroundColor(getResources().getColor(R.color.primaryLight));
+                    text.setTextColor(getResources().getColor(R.color.primaryDarker));
+                }
+
+                return convertView;
+            }
+        };
+
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        categorySpinner.setAdapter(adapter);
+
+        categorySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                fetchData(categories[position]);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {}
+        });
+    }
+
+    private void fetchData(String category) {
+        progressBar.setVisibility(View.VISIBLE);
+        fallbackText.setVisibility(View.GONE);
+        recyclerView.setVisibility(View.GONE);
+
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl("https://booking-backend-295607ecab74.herokuapp.com/api/")
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
 
         ApiService apiService = retrofit.create(ApiService.class);
-
-        Call<ResponseBody> call = apiService.getAllByCategory(0, 20, "ALL");
+        Call<ResponseBody> call = apiService.getAllByCategory(0, 20, category);
 
         call.enqueue(new Callback<ResponseBody>() {
             @Override
             public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                progressBar.setVisibility(View.GONE);
                 try {
                     if (response.isSuccessful() && response.body() != null) {
                         String json = response.body().string();
                         JSONObject obj = new JSONObject(json);
                         listingsArray = obj.getJSONArray("content");
 
-                        // set adapter
-                        recyclerView.setAdapter(new ListingAdapter(listingsArray));
+                        if (listingsArray.length() == 0) {
+                            fallbackText.setVisibility(View.VISIBLE);
+                            recyclerView.setVisibility(View.GONE);
+                        } else {
+                            fallbackText.setVisibility(View.GONE);
+                            recyclerView.setVisibility(View.VISIBLE);
+                            recyclerView.setAdapter(new ListingAdapter(listingsArray));
+                        }
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
+                    fallbackText.setVisibility(View.VISIBLE);
+                    fallbackText.setText("Failed to parse listings");
                 }
             }
 
             @Override
             public void onFailure(Call<ResponseBody> call, Throwable t) {
+                progressBar.setVisibility(View.GONE);
+                fallbackText.setText("Failed to load listings");
+                fallbackText.setVisibility(View.VISIBLE);
+                recyclerView.setVisibility(View.GONE);
                 t.printStackTrace();
             }
         });
     }
 
-    // ------------------- API Interface -------------------
     interface ApiService {
         @GET("tenant-listing/get-all-by-category")
         Call<ResponseBody> getAllByCategory(
@@ -86,9 +197,7 @@ public class MainActivity extends AppCompatActivity {
         );
     }
 
-    // ------------------- RecyclerView Adapter -------------------
     class ListingAdapter extends RecyclerView.Adapter<ListingAdapter.ViewHolder> {
-
         JSONArray items;
 
         ListingAdapter(JSONArray items) {
@@ -113,24 +222,18 @@ public class MainActivity extends AppCompatActivity {
             holder.priceText.setText("Price: " + (priceObj != null ? priceObj.optInt("value", 0) : "0"));
 
             JSONObject coverObj = item.optJSONObject("cover");
-            if (coverObj != null) {
-                String coverFile = coverObj.optString("file", "");
-                if (coverFile.startsWith("/9j/")) { // likely a base64 image
-                    try {
-                        byte[] decodedBytes = Base64.decode(coverFile, Base64.DEFAULT);
+            String coverFile = coverObj != null ? coverObj.optString("file", "") : "";
 
-                        // <-- Glide used for smooth scrolling -->
-                        Glide.with(holder.coverImage.getContext())
-                                .asBitmap()
-                                .load(decodedBytes)
-                                .centerCrop()
-                                .into(holder.coverImage);
-
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                        holder.coverImage.setImageResource(R.drawable.ic_launcher_background);
-                    }
-                } else {
+            if (!coverFile.isEmpty()) {
+                try {
+                    byte[] decoded = Base64.decode(coverFile, Base64.DEFAULT);
+                    Glide.with(holder.coverImage.getContext())
+                            .asBitmap()
+                            .load(decoded)
+                            .placeholder(R.drawable.ic_launcher_background)
+                            .into(holder.coverImage);
+                } catch (Exception e) {
+                    e.printStackTrace();
                     holder.coverImage.setImageResource(R.drawable.ic_launcher_background);
                 }
             } else {

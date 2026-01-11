@@ -1,17 +1,16 @@
 package com.example.myapplication;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Base64;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.Spinner;
 import android.widget.TextView;
-import android.content.Intent;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.GridLayoutManager;
@@ -54,6 +53,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        // --- Bind Views ---
         recyclerView = findViewById(R.id.recyclerView);
         categorySpinner = findViewById(R.id.categorySpinner);
         progressBar = findViewById(R.id.progressBar);
@@ -90,42 +90,9 @@ public class MainActivity extends AppCompatActivity {
         fetchData("ALL");
     }
 
+    // --- Category Spinner ---
     private void setupCategoryDropdown() {
-        ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, categories) {
-            @Override
-            public View getView(int position, View convertView, ViewGroup parent) {
-                return createDropdownItemView(position, convertView, parent, true);
-            }
-
-            @Override
-            public View getDropDownView(int position, View convertView, ViewGroup parent) {
-                return createDropdownItemView(position, convertView, parent, false);
-            }
-
-            private View createDropdownItemView(int position, View convertView, ViewGroup parent, boolean isSelectedView) {
-                if (convertView == null) {
-                    convertView = LayoutInflater.from(getContext()).inflate(R.layout.spinner_item_with_icon, parent, false);
-                }
-
-                ImageView icon = convertView.findViewById(R.id.iconImage);
-                TextView text = convertView.findViewById(R.id.textLabel);
-
-                String category = getItem(position);
-                text.setText(category.replace("_", " "));
-                Integer iconRes = categoryIcons.get(category);
-                if (iconRes != null) icon.setImageResource(iconRes);
-
-                // Highlight selected
-                if (isSelectedView) {
-                    convertView.setBackgroundColor(getResources().getColor(R.color.primaryLight));
-                    text.setTextColor(getResources().getColor(R.color.primaryDarker));
-                }
-
-                return convertView;
-            }
-        };
-
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        CategoryAdapter adapter = new CategoryAdapter();
         categorySpinner.setAdapter(adapter);
 
         categorySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
@@ -139,6 +106,51 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    class CategoryAdapter extends android.widget.BaseAdapter {
+
+        @Override
+        public int getCount() { return categories.length; }
+
+        @Override
+        public Object getItem(int position) { return categories[position]; }
+
+        @Override
+        public long getItemId(int position) { return position; }
+
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+            return createItemView(position, convertView, parent, true);
+        }
+
+        @Override
+        public View getDropDownView(int position, View convertView, ViewGroup parent) {
+            return createItemView(position, convertView, parent, false);
+        }
+
+        private View createItemView(int position, View convertView, ViewGroup parent, boolean isSelectedView) {
+            if (convertView == null) {
+                convertView = LayoutInflater.from(MainActivity.this)
+                        .inflate(R.layout.spinner_item_with_icon, parent, false);
+            }
+            ImageView icon = convertView.findViewById(R.id.iconImage);
+            TextView text = convertView.findViewById(R.id.textLabel);
+
+            String category = categories[position];
+            text.setText(category.replace("_", " "));
+            if (categoryIcons.containsKey(category))
+                icon.setImageResource(categoryIcons.get(category));
+
+            // Highlight selected
+            if (isSelectedView) {
+                convertView.setBackgroundColor(getResources().getColor(R.color.primaryLight));
+                text.setTextColor(getResources().getColor(R.color.primaryDarker));
+            }
+
+            return convertView;
+        }
+    }
+
+    // --- Fetch Listings ---
     private void fetchData(String category) {
         progressBar.setVisibility(View.VISIBLE);
         fallbackText.setVisibility(View.GONE);
@@ -150,60 +162,55 @@ public class MainActivity extends AppCompatActivity {
                 .build();
 
         ApiService apiService = retrofit.create(ApiService.class);
-        Call<ResponseBody> call = apiService.getAllByCategory(0, 20, category);
+        apiService.getAllByCategory(0, 20, category)
+                .enqueue(new Callback<ResponseBody>() {
+                    @Override
+                    public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                        progressBar.setVisibility(View.GONE);
+                        try {
+                            if (response.isSuccessful() && response.body() != null) {
+                                JSONObject obj = new JSONObject(response.body().string());
+                                listingsArray = obj.getJSONArray("content");
 
-        call.enqueue(new Callback<ResponseBody>() {
-            @Override
-            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-                progressBar.setVisibility(View.GONE);
-                try {
-                    if (response.isSuccessful() && response.body() != null) {
-                        String json = response.body().string();
-                        JSONObject obj = new JSONObject(json);
-                        listingsArray = obj.getJSONArray("content");
-
-                        if (listingsArray.length() == 0) {
+                                if (listingsArray.length() == 0) {
+                                    fallbackText.setVisibility(View.VISIBLE);
+                                    recyclerView.setVisibility(View.GONE);
+                                } else {
+                                    fallbackText.setVisibility(View.GONE);
+                                    recyclerView.setVisibility(View.VISIBLE);
+                                    recyclerView.setAdapter(new ListingAdapter(listingsArray));
+                                }
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
                             fallbackText.setVisibility(View.VISIBLE);
-                            recyclerView.setVisibility(View.GONE);
-                        } else {
-                            fallbackText.setVisibility(View.GONE);
-                            recyclerView.setVisibility(View.VISIBLE);
-                            recyclerView.setAdapter(new ListingAdapter(listingsArray));
+                            fallbackText.setText("Failed to parse listings");
                         }
                     }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    fallbackText.setVisibility(View.VISIBLE);
-                    fallbackText.setText("Failed to parse listings");
-                }
-            }
 
-            @Override
-            public void onFailure(Call<ResponseBody> call, Throwable t) {
-                progressBar.setVisibility(View.GONE);
-                fallbackText.setText("Failed to load listings");
-                fallbackText.setVisibility(View.VISIBLE);
-                recyclerView.setVisibility(View.GONE);
-                t.printStackTrace();
-            }
-        });
+                    @Override
+                    public void onFailure(Call<ResponseBody> call, Throwable t) {
+                        progressBar.setVisibility(View.GONE);
+                        fallbackText.setText("Failed to load listings");
+                        fallbackText.setVisibility(View.VISIBLE);
+                        recyclerView.setVisibility(View.GONE);
+                        t.printStackTrace();
+                    }
+                });
     }
 
     interface ApiService {
         @GET("tenant-listing/get-all-by-category")
-        Call<ResponseBody> getAllByCategory(
-                @Query("page") int page,
-                @Query("size") int size,
-                @Query("category") String category
-        );
+        Call<ResponseBody> getAllByCategory(@Query("page") int page,
+                                            @Query("size") int size,
+                                            @Query("category") String category);
     }
 
-    class ListingAdapter extends RecyclerView.Adapter<ListingAdapter.ViewHolder> {
+    // --- RecyclerView Adapter ---
+    static class ListingAdapter extends RecyclerView.Adapter<ListingAdapter.ViewHolder> {
         JSONArray items;
 
-        ListingAdapter(JSONArray items) {
-            this.items = items;
-        }
+        ListingAdapter(JSONArray items) { this.items = items; }
 
         @Override
         public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
@@ -252,11 +259,9 @@ public class MainActivity extends AppCompatActivity {
         }
 
         @Override
-        public int getItemCount() {
-            return items.length();
-        }
+        public int getItemCount() { return items.length(); }
 
-        class ViewHolder extends RecyclerView.ViewHolder {
+        static class ViewHolder extends RecyclerView.ViewHolder {
             ImageView coverImage;
             TextView locationText, categoryText, priceText;
 

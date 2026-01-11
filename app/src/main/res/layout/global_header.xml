@@ -1,0 +1,28 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:fitsSystemWindows="true"
+    android:background="@color/primaryColor">
+
+    <!-- Plane Image on the left -->
+    <ImageView
+        android:id="@+id/planeImage"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:layout_centerVertical="true"
+        android:layout_marginStart="12dp"
+        android:src="@drawable/plane_icon"
+        android:contentDescription="Plane Icon" />
+
+    <!-- Hamburger Icon on the right -->
+    <ImageView
+        android:id="@+id/hamburgerIcon"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:layout_centerVertical="true"
+        android:layout_alignParentEnd="true"
+        android:layout_marginEnd="16dp"
+        android:src="@drawable/ic_hamburger"
+        android:contentDescription="Menu Icon" />
+
+</RelativeLayout>

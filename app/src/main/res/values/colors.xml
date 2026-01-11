@@ -2,13 +2,11 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
-
     <color name="background">#FFFFFF</color>
     <color name="textPrimary">#000000</color>
     <color name="textSecondary">#666666</color>
     <color name="primary">#4CAF50</color>
     <color name="separator">#E0E0E0</color>
-
     <color name="primaryColor">#3B82F6</color>
     <color name="primaryLight">#BFDBFE</color>
     <color name="primaryDark">#2563EB</color>
@@ -18,4 +16,5 @@
     <color name="highlightTextColor">#1D4ED8</color>
     <color name="highlightFocusBg">#3B82F624</color> <!-- 24% opacity -->
     <color name="grayLight">#E0E0E0</color>
+    <color name="primaryColorDark">#3700B3</color>
 </resources>

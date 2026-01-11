@@ -1,7 +1,5 @@
 package com.example.myapplication;
 
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.util.Base64;
 import android.view.View;
@@ -12,6 +10,7 @@ import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.viewpager2.widget.ViewPager2;
 
 import com.bumptech.glide.Glide;
 
@@ -30,7 +29,7 @@ import retrofit2.http.Query;
 public class ListingDetailsActivity extends AppCompatActivity {
 
     ProgressBar progressBar;
-    androidx.viewpager2.widget.ViewPager2 imagePager;
+    ViewPager2 imagePager;
     TextView titleText, descriptionText, locationText, categoryText;
     TextView guestsText, bedroomsText, bedsText, bathsText;
     TextView priceText, landlordText;
@@ -40,6 +39,7 @@ public class ListingDetailsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_listing_details);
 
+        // --- Bind Views ---
         progressBar = findViewById(R.id.progressBar);
         imagePager = findViewById(R.id.imagePager);
         titleText = findViewById(R.id.titleText);
@@ -53,15 +53,20 @@ public class ListingDetailsActivity extends AppCompatActivity {
         priceText = findViewById(R.id.priceText);
         landlordText = findViewById(R.id.landlordText);
 
-        // Smooth carousel optimizations
+        // Optimize ViewPager
         imagePager.setOffscreenPageLimit(3);
         imagePager.setClipToPadding(false);
 
+        // Get listing ID from intent
         String listingId = getIntent().getStringExtra("listingId");
-        fetchListingDetails(listingId);
+        if (listingId != null) {
+            fetchListingDetails(listingId);
+        } else {
+            progressBar.setVisibility(View.GONE);
+        }
     }
 
-
+    // --- Fetch Listing Details ---
     private void fetchListingDetails(String listingId) {
         progressBar.setVisibility(View.VISIBLE);
 
@@ -81,63 +86,44 @@ public class ListingDetailsActivity extends AppCompatActivity {
                     if (response.isSuccessful() && response.body() != null) {
                         JSONObject obj = new JSONObject(response.body().string());
 
-                        // Description
+                        // --- Description ---
                         JSONObject description = obj.optJSONObject("description");
                         if (description != null) {
-                            JSONObject titleObj = description.optJSONObject("title");
-                            JSONObject descObj = description.optJSONObject("description");
-
-                            String title = titleObj != null ? titleObj.optString("value", "") : "";
-                            String desc = descObj != null ? descObj.optString("value", "") : "";
+                            String title = description.optJSONObject("title") != null ?
+                                    description.optJSONObject("title").optString("value", "") : "";
+                            String desc = description.optJSONObject("description") != null ?
+                                    description.optJSONObject("description").optString("value", "") : "";
 
                             titleText.setText(title);
                             descriptionText.setText(desc);
                         }
 
-
-                        // Location & Category
+                        // --- Location & Category ---
                         locationText.setText(obj.optString("location", ""));
                         categoryText.setText(obj.optString("category", ""));
 
-                        // Infos
+                        // --- Infos ---
                         JSONObject infos = obj.optJSONObject("infos");
                         if (infos != null) {
-                            JSONObject guestsObj = infos.optJSONObject("guests");
-                            JSONObject bedroomsObj = infos.optJSONObject("bedrooms");
-                            JSONObject bedsObj = infos.optJSONObject("beds");
-                            JSONObject bathsObj = infos.optJSONObject("baths");
-
-                            int guests = guestsObj != null ? guestsObj.optInt("value", 0) : 0;
-                            int bedrooms = bedroomsObj != null ? bedroomsObj.optInt("value", 0) : 0;
-                            int beds = bedsObj != null ? bedsObj.optInt("value", 0) : 0;
-                            int baths = bathsObj != null ? bathsObj.optInt("value", 0) : 0;
-
-                            guestsText.setText("Guests: " + guests);
-                            bedroomsText.setText("Bedrooms: " + bedrooms);
-                            bedsText.setText("Beds: " + beds);
-                            bathsText.setText("Baths: " + baths);
+                            guestsText.setText("Guests: " + getValueFromJson(infos, "guests"));
+                            bedroomsText.setText("Bedrooms: " + getValueFromJson(infos, "bedrooms"));
+                            bedsText.setText("Beds: " + getValueFromJson(infos, "beds"));
+                            bathsText.setText("Baths: " + getValueFromJson(infos, "baths"));
                         }
 
-
-                        // Price
+                        // --- Price ---
                         JSONObject price = obj.optJSONObject("price");
-                        if (price != null) {
-                            priceText.setText("Price: " + price.optInt("value", 0));
-                        }
+                        priceText.setText("Price: " + (price != null ? price.optInt("value", 0) : 0));
 
-                        // Landlord
+                        // --- Landlord ---
                         JSONObject landlord = obj.optJSONObject("landlord");
-                        if (landlord != null) {
-                            landlordText.setText(
-                                    "Landlord: " + landlord.optString("firstname", "")
-                            );
-                        }
+                        landlordText.setText("Landlord: " + (landlord != null ? landlord.optString("firstname", "") : ""));
 
+                        // --- Pictures ---
                         JSONArray pictures = obj.optJSONArray("pictures");
                         if (pictures != null && pictures.length() > 0) {
                             imagePager.setAdapter(new ImagePagerAdapter(pictures));
                         }
-
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -152,64 +138,66 @@ public class ListingDetailsActivity extends AppCompatActivity {
         });
     }
 
+    // Helper for getting values from JSON objects
+    private int getValueFromJson(JSONObject parent, String key) {
+        JSONObject obj = parent.optJSONObject(key);
+        return obj != null ? obj.optInt("value", 0) : 0;
+    }
+
+    // --- Retrofit API ---
     interface ApiService {
         @GET("tenant-listing/get-one")
         Call<ResponseBody> getOneListing(@Query("publicId") String publicId);
     }
-}
 
+    // --- Image Pager Adapter ---
+    static class ImagePagerAdapter extends RecyclerView.Adapter<ImagePagerAdapter.ImageViewHolder> {
 
+        JSONArray pictures;
 
-class ImagePagerAdapter extends RecyclerView.Adapter<ImagePagerAdapter.ImageViewHolder> {
+        ImagePagerAdapter(JSONArray pictures) {
+            this.pictures = pictures;
+        }
 
-    JSONArray pictures;
+        @Override
+        public ImageViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+            ImageView imageView = new ImageView(parent.getContext());
+            imageView.setLayoutParams(new ViewGroup.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.MATCH_PARENT
+            ));
+            imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
+            return new ImageViewHolder(imageView);
+        }
 
-    ImagePagerAdapter(JSONArray pictures) {
-        this.pictures = pictures;
-    }
-
-    @Override
-    public ImageViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        ImageView imageView = new ImageView(parent.getContext());
-        imageView.setLayoutParams(new ViewGroup.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.MATCH_PARENT
-        ));
-        imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
-        return new ImageViewHolder(imageView);
-    }
-
-    @Override
-    public void onBindViewHolder(ImageViewHolder holder, int position) {
-        try {
-            JSONObject picture = pictures.getJSONObject(position);
-            String file = picture.optString("file", "");
-
-            if (!file.isEmpty()) {
-                byte[] decoded = Base64.decode(file, Base64.DEFAULT);
-                Glide.with(holder.imageView.getContext())
-                        .load(decoded)
-                        .centerCrop()
-                        .into(holder.imageView);
-
+        @Override
+        public void onBindViewHolder(ImageViewHolder holder, int position) {
+            try {
+                JSONObject picture = pictures.getJSONObject(position);
+                String file = picture.optString("file", "");
+                if (!file.isEmpty()) {
+                    byte[] decoded = Base64.decode(file, Base64.DEFAULT);
+                    Glide.with(holder.imageView.getContext())
+                            .load(decoded)
+                            .centerCrop()
+                            .into(holder.imageView);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-        } catch (Exception e) {
-            e.printStackTrace();
         }
-    }
 
-    @Override
-    public int getItemCount() {
-        return pictures.length();
-    }
+        @Override
+        public int getItemCount() {
+            return pictures.length();
+        }
 
-    class ImageViewHolder extends RecyclerView.ViewHolder {
-        ImageView imageView;
-
-        ImageViewHolder(View itemView) {
-            super(itemView);
-            imageView = (ImageView) itemView;
+        static class ImageViewHolder extends RecyclerView.ViewHolder {
+            ImageView imageView;
+            ImageViewHolder(View itemView) {
+                super(itemView);
+                imageView = (ImageView) itemView;
+            }
         }
     }
 }
-

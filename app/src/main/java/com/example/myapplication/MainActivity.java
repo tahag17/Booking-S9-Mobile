@@ -11,6 +11,7 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.content.Intent;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.GridLayoutManager;
@@ -239,6 +240,15 @@ public class MainActivity extends AppCompatActivity {
             } else {
                 holder.coverImage.setImageResource(R.drawable.ic_launcher_background);
             }
+
+            holder.itemView.setOnClickListener(v -> {
+                String publicId = item.optString("publicId", null);
+                if (publicId != null) {
+                    Intent intent = new Intent(v.getContext(), ListingDetailsActivity.class);
+                    intent.putExtra("listingId", publicId);
+                    v.getContext().startActivity(intent);
+                }
+            });
         }
 
         @Override

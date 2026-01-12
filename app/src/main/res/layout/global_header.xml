@@ -1,27 +1,50 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:fitsSystemWindows="true"
-    android:background="@color/primaryColor">
+    android:layout_height="56dp"
+    android:background="@color/primaryColor"
+    android:paddingHorizontal="12dp"
+    android:gravity="center_vertical">
 
     <!-- Plane Image on the left -->
     <ImageView
         android:id="@+id/planeImage"
         android:layout_width="32dp"
         android:layout_height="32dp"
-        android:layout_centerVertical="true"
-        android:layout_marginStart="12dp"
+        android:layout_alignParentStart="true"
         android:src="@drawable/plane_icon"
         android:contentDescription="Plane Icon" />
 
-    <!-- Hamburger Icon on the right -->
+    <!-- Login Button -->
+    <Button
+        android:id="@+id/buttonLogin"
+        android:layout_width="wrap_content"
+        android:layout_height="36dp"
+        android:layout_toStartOf="@id/hamburgerIcon"
+        android:layout_marginEnd="8dp"
+        android:text="LOGIN"
+        android:textAllCaps="false"
+        android:textColor="@android:color/white"
+        android:backgroundTint="@android:color/transparent" />
+
+    <!-- User name (shown after login) -->
+    <TextView
+        android:id="@+id/textUserName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toStartOf="@id/hamburgerIcon"
+        android:layout_marginEnd="8dp"
+        android:textColor="@android:color/white"
+        android:textSize="14sp"
+        android:visibility="gone" />
+
+
+
+    <!-- Hamburger Icon -->
     <ImageView
         android:id="@+id/hamburgerIcon"
-        android:layout_width="32dp"
-        android:layout_height="32dp"
-        android:layout_centerVertical="true"
+        android:layout_width="2dp"
+        android:layout_height="2dp"
         android:layout_alignParentEnd="true"
-        android:layout_marginEnd="16dp"
         android:src="@drawable/ic_hamburger"
         android:contentDescription="Menu Icon" />
 

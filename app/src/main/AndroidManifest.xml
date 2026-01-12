@@ -16,6 +16,17 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+
+            <!-- Auth0 callback -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data
+                    android:scheme="${auth0Scheme}"
+                    android:host="${auth0Domain}"
+                    android:pathPrefix="/android/com.example.myapplication/callback"/>
+            </intent-filter>
         </activity>
         <activity
             android:name=".ListingDetailsActivity"

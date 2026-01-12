@@ -32,7 +32,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 import retrofit2.http.GET;
 import retrofit2.http.Query;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends BaseActivity {
 
     RecyclerView recyclerView;
     Spinner categorySpinner;
@@ -52,6 +52,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        setupHeaderLogin();
 
         // --- Bind Views ---
         recyclerView = findViewById(R.id.recyclerView);

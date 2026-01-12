@@ -26,7 +26,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 import retrofit2.http.GET;
 import retrofit2.http.Query;
 
-public class ListingDetailsActivity extends AppCompatActivity {
+public class ListingDetailsActivity extends BaseActivity {
 
     ProgressBar progressBar;
     ViewPager2 imagePager;
@@ -38,6 +38,7 @@ public class ListingDetailsActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_listing_details);
+        setupHeaderLogin();
 
         // --- Bind Views ---
         progressBar = findViewById(R.id.progressBar);

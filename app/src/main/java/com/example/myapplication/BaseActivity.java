@@ -42,19 +42,23 @@ public abstract class BaseActivity extends AppCompatActivity {
     protected void setupHeaderLogin() {
         Button loginButton = findViewById(R.id.buttonLogin);
         TextView userNameText = findViewById(R.id.textUserName);
-        if (loginButton == null || userNameText == null) return;
-        updateHeaderUI(loginButton, userNameText);
+        TextView logoutText = findViewById(R.id.textLogout);
+
+        if (loginButton == null || userNameText == null || logoutText == null) return;
+
+        updateHeaderUI(loginButton, userNameText, logoutText);
+
         loginButton.setOnClickListener(v -> {
             Log.d("Auth0", "Login button clicked");
             login();
         });
+
+        logoutText.setOnClickListener(v -> {
+            Log.d("Auth0", "Logout clicked");
+            logout();
+        });
     }
-//    protected void setupHeaderLogin() {
-//        Button loginButton = findViewById(R.id.buttonLogin);
-//        if (loginButton == null) return;
-//        updateLoginButton(loginButton);
-//        loginButton.setOnClickListener(v -> login());
-//    }
+
 
     private void login() {
         Log.d("Auth0", "Starting Auth0 login flow");
@@ -92,29 +96,66 @@ public abstract class BaseActivity extends AppCompatActivity {
                 });
     }
 
-    private void updateHeaderUI(Button loginButton, TextView userNameText) {
+    private void logout() {
+        Log.d("Auth0", "Starting logout");
+
+        WebAuthProvider.logout(account)
+                .withScheme(getString(R.string.com_auth0_scheme))
+                .start(this, new Callback<Void, AuthenticationException>() {
+                    @Override
+                    public void onSuccess(Void payload) {
+                        Log.d("Auth0", "Logout SUCCESS");
+
+                        clearSession();
+                        userIsAuthenticated = false;
+
+                        showSnackBar("Logged out");
+                        recreate(); // refresh UI
+                    }
+
+                    @Override
+                    public void onFailure(AuthenticationException exception) {
+                        Log.e("Auth0", "Logout FAILED: " + exception.getCode());
+                        showSnackBar("Logout failed");
+                    }
+                });
+    }
+
+
+    private void updateHeaderUI(
+            Button loginButton,
+            TextView userNameText,
+            TextView logoutText
+    ) {
         if (userIsAuthenticated) {
             loginButton.setVisibility(View.GONE);
 
             String idToken = getSharedPreferences(PREFS, MODE_PRIVATE)
                     .getString(KEY_ID_TOKEN, null);
 
+            String name = "User";
             if (idToken != null) {
                 JWT jwt = new JWT(idToken);
-                String name = jwt.getClaim("name").asString();
-
-                userNameText.setText(name != null ? name : "User");
-                userNameText.setVisibility(View.VISIBLE);
-
-                Log.d("Auth0", "Header updated with user name: " + name);
+                name = jwt.getClaim("name").asString() != null
+                        ? jwt.getClaim("name").asString()
+                        : "User";
             }
+
+            userNameText.setText(name);
+            userNameText.setVisibility(View.VISIBLE);
+            logoutText.setVisibility(View.VISIBLE);
+
+            Log.d("Auth0", "Header → Logged in as " + name);
+
         } else {
             loginButton.setVisibility(View.VISIBLE);
             userNameText.setVisibility(View.GONE);
+            logoutText.setVisibility(View.GONE);
 
-            Log.d("Auth0", "User not authenticated – showing LOGIN button");
+            Log.d("Auth0", "Header → Logged out");
         }
     }
+
 
 
     private void saveSession(Credentials credentials) {
@@ -129,6 +170,16 @@ public abstract class BaseActivity extends AppCompatActivity {
         SharedPreferences prefs = getSharedPreferences(PREFS, MODE_PRIVATE);
         userIsAuthenticated = prefs.contains(KEY_ACCESS_TOKEN);
     }
+
+    private void clearSession() {
+        getSharedPreferences(PREFS, MODE_PRIVATE)
+                .edit()
+                .clear()
+                .apply();
+
+        Log.d("Auth0", "Local session cleared");
+    }
+
 
     protected String getAccessToken() {
         return getSharedPreferences(PREFS, MODE_PRIVATE)

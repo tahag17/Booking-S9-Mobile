@@ -14,38 +14,37 @@
         android:src="@drawable/plane_icon"
         android:contentDescription="Plane Icon" />
 
-    <!-- Login Button -->
+    <!-- Login Button (shown when logged out) -->
     <Button
         android:id="@+id/buttonLogin"
         android:layout_width="wrap_content"
         android:layout_height="36dp"
-        android:layout_toStartOf="@id/hamburgerIcon"
-        android:layout_marginEnd="8dp"
+        android:layout_alignParentEnd="true"
         android:text="LOGIN"
         android:textAllCaps="false"
         android:textColor="@android:color/white"
         android:backgroundTint="@android:color/transparent" />
 
-    <!-- User name (shown after login) -->
+    <!-- Logout (shown when logged in) -->
+    <TextView
+        android:id="@+id/textLogout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:text="Logout"
+        android:textStyle="bold"
+        android:textColor="@android:color/white"
+        android:visibility="gone" />
+
+    <!-- User name (to the left of Logout) -->
     <TextView
         android:id="@+id/textUserName"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_toStartOf="@id/hamburgerIcon"
+        android:layout_toStartOf="@id/textLogout"
         android:layout_marginEnd="8dp"
         android:textColor="@android:color/white"
         android:textSize="14sp"
         android:visibility="gone" />
-
-
-
-    <!-- Hamburger Icon -->
-    <ImageView
-        android:id="@+id/hamburgerIcon"
-        android:layout_width="2dp"
-        android:layout_height="2dp"
-        android:layout_alignParentEnd="true"
-        android:src="@drawable/ic_hamburger"
-        android:contentDescription="Menu Icon" />
 
 </RelativeLayout>

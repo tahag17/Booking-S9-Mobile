@@ -31,6 +31,9 @@
         <activity
             android:name=".ListingDetailsActivity"
             android:exported="false" />
+        <activity
+            android:name=".MyBookingsActivity"
+            android:exported="true" />
     </application>
 
 </manifest>

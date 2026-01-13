@@ -5,16 +5,15 @@
     android:paddingHorizontal="12dp"
     android:gravity="center_vertical">
 
-    <!-- Plane Image on the left -->
+    <!-- Plane icon -->
     <ImageView
         android:id="@+id/planeImage"
         android:layout_width="32dp"
         android:layout_height="32dp"
         android:layout_alignParentStart="true"
-        android:src="@drawable/plane_icon"
-        android:contentDescription="Plane Icon" />
+        android:src="@drawable/plane_icon" />
 
-    <!-- Login Button (shown when logged out) -->
+    <!-- LOGIN -->
     <Button
         android:id="@+id/buttonLogin"
         android:layout_width="wrap_content"
@@ -25,26 +24,13 @@
         android:textColor="@android:color/white"
         android:backgroundTint="@android:color/transparent" />
 
-    <!-- Logout (shown when logged in) -->
-    <TextView
-        android:id="@+id/textLogout"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+    <!-- User icon -->
+    <ImageView
+        android:id="@+id/userIcon"
+        android:layout_width="28dp"
+        android:layout_height="28dp"
         android:layout_alignParentEnd="true"
-        android:text="Logout"
-        android:textStyle="bold"
-        android:textColor="@android:color/white"
-        android:visibility="gone" />
-
-    <!-- User name (to the left of Logout) -->
-    <TextView
-        android:id="@+id/textUserName"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_toStartOf="@id/textLogout"
-        android:layout_marginEnd="8dp"
-        android:textColor="@android:color/white"
-        android:textSize="14sp"
+        android:src="@drawable/ic_user"
         android:visibility="gone" />
 
 </RelativeLayout>

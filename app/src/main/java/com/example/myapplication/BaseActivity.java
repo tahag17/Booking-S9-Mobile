@@ -1,10 +1,17 @@
 package com.example.myapplication;
 
+import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.PopupWindow;
 import android.widget.TextView;
 import com.auth0.android.jwt.JWT;
 import androidx.appcompat.app.AppCompatActivity;
@@ -24,6 +31,8 @@ public abstract class BaseActivity extends AppCompatActivity {
     private static final String KEY_ACCESS_TOKEN = "access_token";
     private static final String KEY_ID_TOKEN = "id_token";
 
+    private PopupWindow userPopup;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -41,23 +50,132 @@ public abstract class BaseActivity extends AppCompatActivity {
      */
     protected void setupHeaderLogin() {
         Button loginButton = findViewById(R.id.buttonLogin);
-        TextView userNameText = findViewById(R.id.textUserName);
-        TextView logoutText = findViewById(R.id.textLogout);
+        ImageView userIcon = findViewById(R.id.userIcon);
 
-        if (loginButton == null || userNameText == null || logoutText == null) return;
+        if (loginButton == null || userIcon == null) return;
 
-        updateHeaderUI(loginButton, userNameText, logoutText);
+        if (!userIsAuthenticated) {
+            loginButton.setVisibility(View.VISIBLE);
+            userIcon.setVisibility(View.GONE);
 
-        loginButton.setOnClickListener(v -> {
-            Log.d("Auth0", "Login button clicked");
-            login();
-        });
+            loginButton.setOnClickListener(v -> login());
+            return;
+        }
 
-        logoutText.setOnClickListener(v -> {
-            Log.d("Auth0", "Logout clicked");
-            logout();
+        loginButton.setVisibility(View.GONE);
+        userIcon.setVisibility(View.VISIBLE);
+
+        userIcon.setOnClickListener(v -> {
+            // Inflate the popup layout
+            View popupView = getLayoutInflater().inflate(R.layout.popup_user_menu, null);
+
+            // Create PopupWindow and assign to class-level variable
+            userPopup = new PopupWindow(
+                    popupView,
+                    WindowManager.LayoutParams.WRAP_CONTENT,
+                    WindowManager.LayoutParams.WRAP_CONTENT,
+                    true // focusable
+            );
+
+            // Background & elevation
+            userPopup.setBackgroundDrawable(new ColorDrawable(Color.WHITE));
+            userPopup.setElevation(16f);
+            userPopup.setOutsideTouchable(true);
+
+            // Show popup below user icon
+            userPopup.showAsDropDown(userIcon, -200, 12); // adjust X offset if needed
+
+            // Bind popup buttons
+            TextView popupUserName = popupView.findViewById(R.id.popupUserName);
+            TextView createListing = popupView.findViewById(R.id.popupCreateListing);
+            TextView myBookings = popupView.findViewById(R.id.popupMyBookings);
+            TextView logout = popupView.findViewById(R.id.popupLogout);
+
+            // Set username at top of dropdown
+            popupUserName.setText("Hello, " + getUserName());
+
+            // Button listeners
+            createListing.setOnClickListener(btn -> {
+                showSnackBar("Create listing clicked");
+                if (userPopup != null && userPopup.isShowing()) userPopup.dismiss();
+            });
+
+            myBookings.setOnClickListener(btn -> {
+                Intent intent = new Intent(this, MyBookingsActivity.class);
+                startActivity(intent);
+                if (userPopup != null && userPopup.isShowing()) userPopup.dismiss();
+            });
+
+            logout.setOnClickListener(btn -> {
+                logout();
+                if (userPopup != null && userPopup.isShowing()) userPopup.dismiss();
+            });
         });
     }
+
+
+    private void toggleUserPopup(View anchor) {
+        if (userPopup != null && userPopup.isShowing()) {
+            userPopup.dismiss();
+            return;
+        }
+
+        View popupView = getLayoutInflater().inflate(R.layout.popup_user_menu, null);
+
+        TextView userName = popupView.findViewById(R.id.popupUserName);
+        TextView createListing = popupView.findViewById(R.id.popupCreateListing);
+        TextView myBookings = popupView.findViewById(R.id.popupMyBookings);
+        TextView logout = popupView.findViewById(R.id.popupLogout);
+
+        if (userName != null) userName.setText(getUserName());
+
+        createListing.setOnClickListener(v -> {
+            showSnackBar("Create listing clicked");
+            if (userPopup != null && userPopup.isShowing()) userPopup.dismiss();
+        });
+
+        myBookings.setOnClickListener(v -> {
+            Intent intent = new Intent(this, MyBookingsActivity.class);
+            startActivity(intent);
+
+            if (userPopup != null && userPopup.isShowing()) userPopup.dismiss();
+        });
+
+        logout.setOnClickListener(v -> {
+            logout();
+            if (userPopup != null && userPopup.isShowing()) userPopup.dismiss();
+        });
+
+        userPopup = new PopupWindow(
+                popupView,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                true
+        );
+
+        userPopup.setElevation(20f);
+        userPopup.setOutsideTouchable(true);
+        userPopup.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+
+        userPopup.showAsDropDown(anchor, -180, 12);
+    }
+
+
+
+    protected String getUserName() {
+        String idToken = getSharedPreferences(PREFS, MODE_PRIVATE)
+                .getString(KEY_ID_TOKEN, null);
+
+        if (idToken == null) return "User";
+
+        try {
+            com.auth0.android.jwt.JWT jwt = new com.auth0.android.jwt.JWT(idToken);
+            return jwt.getClaim("name").asString();
+        } catch (Exception e) {
+            return "User";
+        }
+    }
+
 
 
     private void login() {

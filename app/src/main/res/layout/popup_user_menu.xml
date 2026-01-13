@@ -1,0 +1,53 @@
+<!-- res/layout/popup_user_menu.xml -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="220dp"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/bg_dropdown"
+    android:padding="8dp"
+    android:elevation="16dp">
+
+    <TextView
+        android:id="@+id/popupUserName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="User name"
+        android:textStyle="bold"
+        android:textColor="@android:color/black"
+        android:padding="10dp" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#E5E7EB" />
+
+    <TextView
+        android:id="@+id/popupCreateListing"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Create listing"
+        android:textColor="@android:color/black"
+        android:padding="10dp" />
+
+    <TextView
+        android:id="@+id/popupMyBookings"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="My bookings"
+        android:textColor="@android:color/black"
+        android:padding="10dp" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#E5E7EB" />
+
+    <TextView
+        android:id="@+id/popupLogout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Logout"
+        android:textStyle="bold"
+        android:textColor="@android:color/black"
+        android:padding="10dp" />
+</LinearLayout>

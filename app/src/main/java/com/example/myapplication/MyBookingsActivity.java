@@ -74,6 +74,7 @@ public class MyBookingsActivity extends BaseActivity {
                 }
 
                 String jsonStr = response.body().string();
+                Log.d("MyBookings", "Bookings JSON: " + jsonStr);
                 JSONArray bookingsArray = new JSONArray(jsonStr);
 
                 List<JSONObject> bookingsList = new ArrayList<>();
@@ -149,22 +150,22 @@ public class MyBookingsActivity extends BaseActivity {
                 holder.priceText.setText("Price: N/A");
             }
 
-            // --- Cover image ---
             try {
-                JSONObject coverObj = item.getJSONObject("cover");
-                JSONArray fileArray = coverObj.getJSONArray("file");
-                byte[] imageBytes = new byte[fileArray.length()];
-                for (int i = 0; i < fileArray.length(); i++) {
-                    imageBytes[i] = (byte) fileArray.getInt(i);
+                JSONObject coverObj = item.optJSONObject("cover");
+                String coverFile = coverObj != null ? coverObj.optString("file", "") : "";
+
+                if (!coverFile.isEmpty()) {
+                    byte[] decoded = android.util.Base64.decode(coverFile, android.util.Base64.DEFAULT);
+                    Glide.with(holder.coverImage.getContext())
+                            .asBitmap()
+                            .load(decoded)
+                            .placeholder(R.drawable.ic_launcher_background)
+                            .into(holder.coverImage);
+                } else {
+                    holder.coverImage.setImageResource(R.drawable.ic_launcher_background);
                 }
-
-                Glide.with(holder.coverImage.getContext())
-                        .asBitmap()
-                        .load(imageBytes)
-                        .placeholder(R.drawable.ic_launcher_background)
-                        .into(holder.coverImage);
-
             } catch (Exception e) {
+                e.printStackTrace();
                 holder.coverImage.setImageResource(R.drawable.ic_launcher_background);
             }
         }

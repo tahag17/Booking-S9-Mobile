@@ -66,39 +66,39 @@ public abstract class BaseActivity extends AppCompatActivity {
         userIcon.setVisibility(View.VISIBLE);
 
         userIcon.setOnClickListener(v -> {
-            // Inflate the popup layout
             View popupView = getLayoutInflater().inflate(R.layout.popup_user_menu, null);
 
-            // Create PopupWindow and assign to class-level variable
             userPopup = new PopupWindow(
                     popupView,
                     WindowManager.LayoutParams.WRAP_CONTENT,
                     WindowManager.LayoutParams.WRAP_CONTENT,
-                    true // focusable
+                    true
             );
 
-            // Background & elevation
-            userPopup.setBackgroundDrawable(new ColorDrawable(Color.WHITE));
+            userPopup.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
             userPopup.setElevation(16f);
             userPopup.setOutsideTouchable(true);
 
-            // Show popup below user icon
-            userPopup.showAsDropDown(userIcon, -200, 12); // adjust X offset if needed
+            userPopup.showAsDropDown(userIcon, -200, 12);
 
-            // Bind popup buttons
             TextView popupUserName = popupView.findViewById(R.id.popupUserName);
             TextView createListing = popupView.findViewById(R.id.popupCreateListing);
+            TextView myListings = popupView.findViewById(R.id.popupMyListings);
+            TextView myReservations = popupView.findViewById(R.id.popupMyReservations);
             TextView myBookings = popupView.findViewById(R.id.popupMyBookings);
             TextView logout = popupView.findViewById(R.id.popupLogout);
 
-            // Set username at top of dropdown
-            popupUserName.setText("Hello, " + getUserName());
+            popupUserName.setText(getUserName());
 
-            // Button listeners
-            createListing.setOnClickListener(btn -> {
-                showSnackBar("Create listing clicked");
+            // Show feature unavailable modal/snackbar
+            View.OnClickListener unavailableListener = btn -> {
+                showSnackBar("This feature is not available yet on mobile. Please visit the website.");
                 if (userPopup != null && userPopup.isShowing()) userPopup.dismiss();
-            });
+            };
+
+            createListing.setOnClickListener(unavailableListener);
+            myListings.setOnClickListener(unavailableListener);
+            myReservations.setOnClickListener(unavailableListener);
 
             myBookings.setOnClickListener(btn -> {
                 Intent intent = new Intent(this, MyBookingsActivity.class);

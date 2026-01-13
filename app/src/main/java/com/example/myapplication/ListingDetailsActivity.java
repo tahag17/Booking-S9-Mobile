@@ -1,9 +1,12 @@
 package com.example.myapplication;
 
+import android.app.DatePickerDialog;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Base64;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -16,6 +19,9 @@ import com.bumptech.glide.Glide;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
+
+import java.time.OffsetDateTime;
+import java.util.Calendar;
 
 import okhttp3.ResponseBody;
 import retrofit2.Call;
@@ -33,6 +39,14 @@ public class ListingDetailsActivity extends BaseActivity {
     TextView titleText, descriptionText, locationText, categoryText;
     TextView guestsText, bedroomsText, bedsText, bathsText;
     TextView priceText, landlordText;
+
+    TextView startDateText, endDateText, totalPriceText;
+    Button reserveButton;
+
+    java.util.Calendar startDate, endDate;
+    int pricePerNight = 0;
+    String listingPublicId;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,6 +68,14 @@ public class ListingDetailsActivity extends BaseActivity {
         priceText = findViewById(R.id.priceText);
         landlordText = findViewById(R.id.landlordText);
 
+        startDateText = findViewById(R.id.startDateText);
+        endDateText = findViewById(R.id.endDateText);
+        totalPriceText = findViewById(R.id.totalPriceText);
+        reserveButton = findViewById(R.id.reserveButton);
+
+        listingPublicId = getIntent().getStringExtra("listingId");
+
+
         // Optimize ViewPager
         imagePager.setOffscreenPageLimit(3);
         imagePager.setClipToPadding(false);
@@ -65,6 +87,7 @@ public class ListingDetailsActivity extends BaseActivity {
         } else {
             progressBar.setVisibility(View.GONE);
         }
+        setupDatePickers();
     }
 
     // --- Fetch Listing Details ---
@@ -113,8 +136,12 @@ public class ListingDetailsActivity extends BaseActivity {
                         }
 
                         // --- Price ---
+//                        JSONObject price = obj.optJSONObject("price");
+//                        priceText.setText("Price: " + (price != null ? price.optInt("value", 0) : 0));
                         JSONObject price = obj.optJSONObject("price");
-                        priceText.setText("Price: " + (price != null ? price.optInt("value", 0) : 0));
+                        pricePerNight = price != null ? price.optInt("value", 0) : 0;
+                        priceText.setText("Price: " + pricePerNight);
+
 
                         // --- Landlord ---
                         JSONObject landlord = obj.optJSONObject("landlord");
@@ -138,6 +165,123 @@ public class ListingDetailsActivity extends BaseActivity {
             }
         });
     }
+
+    private void setupDatePickers() {
+
+        startDateText.setOnClickListener(v -> pickDate(true));
+        endDateText.setOnClickListener(v -> pickDate(false));
+
+        reserveButton.setOnClickListener(v -> createBooking());
+    }
+
+    private void pickDate(boolean isStart) {
+        Calendar cal = Calendar.getInstance();
+
+        new DatePickerDialog(
+                this,
+                (view, year, month, day) -> {
+                    Calendar selected = Calendar.getInstance();
+                    selected.set(year, month, day, 0, 0, 0);
+                    selected.set(Calendar.MILLISECOND, 0);
+
+                    if (isStart) {
+                        startDate = selected;
+                        startDateText.setText("Start: " +
+                                day + "/" + (month + 1) + "/" + year);
+                    } else {
+                        endDate = selected;
+                        endDateText.setText("End: " +
+                                day + "/" + (month + 1) + "/" + year);
+                    }
+
+                    calculatePrice();
+                },
+                cal.get(Calendar.YEAR),
+                cal.get(Calendar.MONTH),
+                cal.get(Calendar.DAY_OF_MONTH)
+        ).show();
+    }
+
+
+    private void calculatePrice() {
+        if (startDate == null || endDate == null) return;
+
+        if (!endDate.after(startDate)) {
+            showSnackBar("End date must be after start date");
+            return;
+        }
+
+        long diffMillis = endDate.getTimeInMillis() - startDate.getTimeInMillis();
+        long nights = diffMillis / (1000 * 60 * 60 * 24);
+
+        int total = (int) nights * pricePerNight;
+        totalPriceText.setText("Total price: " + total);
+        reserveButton.setEnabled(true);
+    }
+
+    private String toIsoString(Calendar cal) {
+        java.text.SimpleDateFormat sdf =
+                new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+        sdf.setTimeZone(java.util.TimeZone.getTimeZone("UTC"));
+        return sdf.format(cal.getTime());
+    }
+
+
+    private void createBooking() {
+
+        if (startDate == null || endDate == null) return;
+
+        try {
+            JSONObject body = new JSONObject();
+            body.put("startDate", toIsoString(startDate));
+            body.put("endDate", toIsoString(endDate));
+            body.put("listingPublicId", listingPublicId);
+
+            okhttp3.Request request = new okhttp3.Request.Builder()
+                    .url("https://booking-backend-295607ecab74.herokuapp.com/api/booking/create")
+                    .post(okhttp3.RequestBody.create(
+                            body.toString(),
+                            okhttp3.MediaType.parse("application/json")
+                    ))
+                    .addHeader("Authorization", "Bearer " + getAccessToken())
+                    .build();
+
+            new okhttp3.OkHttpClient().newCall(request).enqueue(new okhttp3.Callback() {
+
+                @Override
+                public void onFailure(okhttp3.Call call, java.io.IOException e) {
+                    runOnUiThread(() ->
+                            showSnackBar("Booking failed")
+                    );
+                }
+
+                @Override
+                public void onResponse(okhttp3.Call call, okhttp3.Response response) throws java.io.IOException {
+                    if (response.isSuccessful()) {
+                        runOnUiThread(() -> {
+                            showSnackBar("Booking created successfully");
+
+                            Intent intent = new Intent(ListingDetailsActivity.this, MyBookingsActivity.class);
+                            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                            startActivity(intent);
+                            finish(); // close listing details
+                        });
+                    }
+                    else {
+                        String error = response.body() != null ? response.body().string() : "Error";
+                        runOnUiThread(() ->
+                                showSnackBar(error)
+                        );
+                    }
+                }
+            });
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            showSnackBar("Booking error");
+        }
+    }
+
 
     // Helper for getting values from JSON objects
     private int getValueFromJson(JSONObject parent, String key) {

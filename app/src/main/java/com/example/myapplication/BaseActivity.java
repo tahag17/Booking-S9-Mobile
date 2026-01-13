@@ -49,6 +49,18 @@ public abstract class BaseActivity extends AppCompatActivity {
      * Must be called AFTER setContentView() in child activities
      */
     protected void setupHeaderLogin() {
+        // --- Plane icon click ---
+        ImageView planeImage = findViewById(R.id.planeImage);
+        if (planeImage != null) {
+            planeImage.setOnClickListener(v -> {
+                // Launch MainActivity (home page)
+                Intent intent = new Intent(this, MainActivity.class);
+                // Optional: avoid creating multiple instances
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                startActivity(intent);
+            });
+        }
+
         Button loginButton = findViewById(R.id.buttonLogin);
         ImageView userIcon = findViewById(R.id.userIcon);
 

@@ -2,15 +2,24 @@
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical"
+    android:background="#F8F9FA"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <!-- Global Header -->
+    <!-- Header -->
     <include
         android:id="@+id/globalHeader"
         layout="@layout/global_header" />
 
-    <!-- Main Content -->
+    <ProgressBar
+        android:id="@+id/progressBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:visibility="gone" />
+
+
+    <!-- Content -->
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
@@ -22,115 +31,197 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <ProgressBar
-                android:id="@+id/progressBar"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:visibility="gone" />
-
+            <!-- Image carousel -->
             <androidx.viewpager2.widget.ViewPager2
                 android:id="@+id/imagePager"
                 android:layout_width="match_parent"
                 android:layout_height="220dp"
-                android:layout_marginTop="8dp"/>
+                android:background="#E5E7EB"
+                android:layout_marginBottom="16dp" />
 
-            <TextView
-                android:id="@+id/titleText"
-                android:textSize="20sp"
-                android:textStyle="bold"
-                android:layout_marginTop="12dp"
+            <!-- Listing Card -->
+            <LinearLayout
+                android:orientation="vertical"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"
+                android:background="@android:color/white"
+                android:padding="16dp">
 
-            <TextView
-                android:id="@+id/descriptionText"
-                android:layout_marginTop="8dp"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
+                <TextView
+                    android:id="@+id/titleText"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    android:textColor="#111827"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
 
-            <TextView
-                android:id="@+id/locationText"
-                android:layout_marginTop="12dp"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
+                <TextView
+                    android:id="@+id/locationText"
+                    android:textSize="14sp"
+                    android:textColor="#6B7280"
+                    android:layout_marginTop="4dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
 
-            <TextView
-                android:id="@+id/categoryText"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
+                <TextView
+                    android:id="@+id/categoryText"
+                    android:textSize="13sp"
+                    android:textColor="#4B5563"
+                    android:layout_marginTop="4dp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
 
-            <TextView android:id="@+id/guestsText" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
-            <TextView android:id="@+id/bedroomsText" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
-            <TextView android:id="@+id/bedsText" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
-            <TextView android:id="@+id/bathsText" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+                <TextView
+                    android:id="@+id/priceText"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="#111827"
+                    android:layout_marginTop="12dp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+            </LinearLayout>
 
-            <TextView
-                android:id="@+id/priceText"
-                android:textStyle="bold"
-                android:layout_marginTop="12dp"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
-
-            <TextView
-                android:id="@+id/landlordText"
-                android:layout_marginTop="8dp"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
-
-            <!-- Booking section -->
+            <!-- Spacer -->
             <View
                 android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:layout_marginTop="16dp"
-                android:background="#DDDDDD" />
+                android:layout_height="12dp" />
 
-            <TextView
-                android:text="Book this listing"
-                android:textStyle="bold"
-                android:textSize="16sp"
-                android:layout_marginTop="12dp"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
-
-            <TextView
-                android:id="@+id/startDateText"
-                android:text="Start date"
-                android:padding="12dp"
-                android:background="#EEEEEE"
-                android:layout_marginTop="8dp"
+            <!-- Details Card -->
+            <LinearLayout
+                android:orientation="vertical"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"
+                android:background="@android:color/white"
+                android:padding="16dp">
 
-            <TextView
-                android:id="@+id/endDateText"
-                android:text="End date"
-                android:padding="12dp"
-                android:background="#EEEEEE"
-                android:layout_marginTop="8dp"
+                <TextView
+                    android:text="Details"
+                    android:textStyle="bold"
+                    android:textSize="16sp"
+                    android:textColor="#111827"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+
+                <TextView
+                    android:id="@+id/descriptionText"
+                    android:textSize="14sp"
+                    android:textColor="#374151"
+                    android:layout_marginTop="8dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+
+                <LinearLayout
+                    android:orientation="horizontal"
+                    android:layout_marginTop="12dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <TextView android:id="@+id/guestsText"
+                        android:textSize="13sp"
+                        android:textColor="#4B5563"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="wrap_content"/>
+
+                    <TextView android:id="@+id/bedroomsText"
+                        android:textSize="13sp"
+                        android:textColor="#4B5563"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="wrap_content"/>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:orientation="horizontal"
+                    android:layout_marginTop="4dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <TextView android:id="@+id/bedsText"
+                        android:textSize="13sp"
+                        android:textColor="#4B5563"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="wrap_content"/>
+
+                    <TextView android:id="@+id/bathsText"
+                        android:textSize="13sp"
+                        android:textColor="#4B5563"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="wrap_content"/>
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/landlordText"
+                    android:textSize="13sp"
+                    android:textColor="#6B7280"
+                    android:layout_marginTop="12dp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+            </LinearLayout>
+
+            <!-- Spacer -->
+            <View
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
+                android:layout_height="12dp" />
 
-            <TextView
-                android:id="@+id/totalPriceText"
-                android:text="Total price: --"
-                android:textStyle="bold"
-                android:layout_marginTop="12dp"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
-
-            <Button
-                android:id="@+id/reserveButton"
-                android:text="Reserve"
-                android:enabled="false"
-                android:layout_marginTop="12dp"
+            <!-- Booking Card -->
+            <LinearLayout
+                android:orientation="vertical"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"
+                android:background="@android:color/white"
+                android:padding="16dp">
+
+                <TextView
+                    android:text="Your booking"
+                    android:textStyle="bold"
+                    android:textSize="16sp"
+                    android:textColor="#111827"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+
+                <TextView
+                    android:id="@+id/startDateText"
+                    android:text="Start date"
+                    android:padding="12dp"
+                    android:layout_marginTop="8dp"
+                    android:background="#F3F4F6"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+
+                <TextView
+                    android:id="@+id/endDateText"
+                    android:text="End date"
+                    android:padding="12dp"
+                    android:layout_marginTop="8dp"
+                    android:background="#F3F4F6"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+
+                <TextView
+                    android:id="@+id/totalPriceText"
+                    android:text="Total price: --"
+                    android:textStyle="bold"
+                    android:textSize="15sp"
+                    android:layout_marginTop="12dp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+
+                <Button
+                    android:id="@+id/reserveButton"
+                    android:text="Reserve"
+                    android:enabled="false"
+                    android:layout_marginTop="12dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+            </LinearLayout>
 
         </LinearLayout>
     </ScrollView>
 
-    <!-- Global Footer -->
+    <!-- Footer -->
     <include
         android:id="@+id/globalFooter"
         layout="@layout/global_footer" />

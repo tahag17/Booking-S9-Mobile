@@ -17,4 +17,5 @@
     <color name="highlightFocusBg">#3B82F624</color> <!-- 24% opacity -->
     <color name="grayLight">#E0E0E0</color>
     <color name="primaryColorDark">#3700B3</color>
+    <color name="green_fallback">#C8E6C9</color>
 </resources>

@@ -28,6 +28,7 @@
     android:textColor="@android:color/black"
     android:textSize="14sp"
     android:text="Create Listing"
+    android:background="@drawable/popup_item_border"
     android:clickable="true"
     android:focusable="true" />
 
@@ -40,6 +41,7 @@
     android:textColor="@android:color/black"
     android:textSize="14sp"
     android:text="My Listings"
+    android:background="@drawable/popup_item_border"
     android:clickable="true"
     android:focusable="true" />
 
@@ -52,6 +54,7 @@
     android:textColor="@android:color/black"
     android:textSize="14sp"
     android:text="My Reservations"
+    android:background="@drawable/popup_item_border"
     android:clickable="true"
     android:focusable="true" />
 
@@ -64,6 +67,7 @@
     android:textColor="@android:color/black"
     android:textSize="14sp"
     android:text="My Bookings"
+    android:background="@drawable/popup_item_border"
     android:clickable="true"
     android:focusable="true" />
 
@@ -76,6 +80,7 @@
     android:textColor="@android:color/black"
     android:textSize="14sp"
     android:text="Logout"
+    android:background="@drawable/popup_item_border"
     android:clickable="true"
     android:focusable="true" />
 

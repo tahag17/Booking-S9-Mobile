@@ -18,4 +18,16 @@
     <color name="grayLight">#E0E0E0</color>
     <color name="primaryColorDark">#3700B3</color>
     <color name="green_fallback">#C8E6C9</color>
+
+    <!-- Brand base -->
+    <color name="brandRed">#F24B5B</color>
+
+    <!-- Light backgrounds (header/footer) -->
+    <color name="brandRedLight">#FDEBEC</color>   <!-- very soft -->
+    <color name="brandRedMedium">#FAD1D5</color> <!-- slightly stronger -->
+
+    <!-- Text & accents -->
+    <color name="brandRedDark">#C81E2D</color>
+    <color name="onBrand">#FFFFFF</color>
+
 </resources>
